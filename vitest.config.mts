@@ -41,7 +41,7 @@ function generateConfig(): Promise<UserConfigExport> {
             test: {
                 alias: alias,
                 coverage: {
-                    include: [path.join('afs_vanilla', 'src', path.sep)],
+                    include: [path.join('afs_demo', 'src', path.sep)],
                     exclude: exclude,
                     reporter: [
                         ['clover', { 'file': 'coverage.xml' }],

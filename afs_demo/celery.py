@@ -7,7 +7,7 @@ import platform
 if platform.system().lower() == "windows":
     os.environ.setdefault("FORKED_BY_MULTIPROCESSING", "1")
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "afs_vanilla.settings")
-app = Celery("afs_vanilla")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "afs_demo.settings")
+app = Celery("afs_demo")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()

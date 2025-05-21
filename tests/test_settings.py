@@ -18,9 +18,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 
-from afs_vanilla.settings import *
+from afs_demo.settings import *
 
-PACKAGE_NAME = "afs_vanilla"
+PACKAGE_NAME = "afs_demo"
 
 PROJECT_TEST_ROOT = os.path.dirname(__file__)
 MEDIA_ROOT = os.path.join(PROJECT_TEST_ROOT, "fixtures", "data")
@@ -38,7 +38,7 @@ DATABASES = {
         "CONN_MAX_AGE": 0,
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "HOST": "localhost",
-        "NAME": "afs_vanilla",
+        "NAME": "afs_demo",
         "OPTIONS": {},
         "PASSWORD": "postgis",
         "PORT": "5432",

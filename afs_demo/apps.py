@@ -4,8 +4,8 @@ from django.conf import settings
 from arches.settings_utils import generate_frontend_configuration
 
 
-class AfsVanillaConfig(AppConfig):
-    name = "afs_vanilla"
+class AfsDemoConfig(AppConfig):
+    name = "afs_demo"
     is_arches_application = True
 
     def ready(self):
