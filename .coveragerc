@@ -1,6 +1,6 @@
 [run]
 source =
-    afs_vanilla/
+    afs_demo/
 
 omit =
     */python?.?/*

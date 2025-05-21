@@ -1,5 +1,5 @@
 """
-Django settings for afs_vanilla project.
+Django settings for afs_demo project.
 """
 
 import os
@@ -13,7 +13,7 @@ try:
 except ImportError:
     pass
 
-APP_NAME = "afs_vanilla"
+APP_NAME = "afs_demo"
 APP_VERSION = semantic_version.Version(major=0, minor=0, patch=0)
 APP_ROOT = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
@@ -23,10 +23,10 @@ WEBPACK_LOADER = {
     },
 }
 
-DATATYPE_LOCATIONS.append("afs_vanilla.datatypes")
-FUNCTION_LOCATIONS.append("afs_vanilla.functions")
-ETL_MODULE_LOCATIONS.append("afs_vanilla.etl_modules")
-SEARCH_COMPONENT_LOCATIONS.append("afs_vanilla.search_components")
+DATATYPE_LOCATIONS.append("afs_demo.datatypes")
+FUNCTION_LOCATIONS.append("afs_demo.functions")
+ETL_MODULE_LOCATIONS.append("afs_demo.etl_modules")
+SEARCH_COMPONENT_LOCATIONS.append("afs_demo.search_components")
 
 LOCALE_PATHS.insert(0, os.path.join(APP_ROOT, "locale"))
 
@@ -56,10 +56,10 @@ SECRET_KEY = "django-insecure-8-lk3ob18659^e7+-hd=jl7-8=*v3f*qh0zpgm8a&c%dw#6i2r
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ROOT_URLCONF = "afs_vanilla.urls"
-ROOT_HOSTCONF = "afs_vanilla.hosts"
+ROOT_URLCONF = "afs_demo.urls"
+ROOT_HOSTCONF = "afs_demo.hosts"
 
-DEFAULT_HOST = "afs_vanilla"
+DEFAULT_HOST = "afs_demo"
 
 # Modify this line as needed for your project to connect to elasticsearch with a password that you generate
 ELASTICSEARCH_CONNECTION_OPTIONS = {
@@ -81,11 +81,11 @@ ELASTICSEARCH_CONNECTION_OPTIONS = {
 # Or Kibana: https://www.elastic.co/guide/en/kibana/current/api-keys.html
 
 # a prefix to append to all elasticsearch indexes, note: must be lower case
-ELASTICSEARCH_PREFIX = "afs_vanilla"
+ELASTICSEARCH_PREFIX = "afs_demo"
 
 ELASTICSEARCH_CUSTOM_INDEXES = []
 # [{
-#     'module': 'afs_vanilla.search_indexes.sample_index.SampleIndex',
+#     'module': 'afs_demo.search_indexes.sample_index.SampleIndex',
 #     'name': 'my_new_custom_index', <-- follow ES index naming rules
 #     'should_update_asynchronously': False  <-- denotes if asynchronously updating the index would affect custom functionality within the project.
 # }]
@@ -109,7 +109,7 @@ DATABASES = {
         "CONN_MAX_AGE": 0,
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "HOST": "localhost",
-        "NAME": "afs_vanilla",
+        "NAME": "afs_demo",
         "OPTIONS": {},
         "PASSWORD": "postgis",
         "PORT": "5432",
@@ -145,7 +145,7 @@ INSTALLED_APPS = (
     "arches_for_science",
     "arches_templating",
     # "silk",
-    "afs_vanilla",  # Ensure the project is listed before any other arches applications
+    "afs_demo",  # Ensure the project is listed before any other arches applications
 )
 
 # Placing this last ensures any templates provided by Arches Applications
@@ -167,7 +167,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "arches.app.utils.middleware.SetAnonymousUser",
     # "silk.middleware.SilkyMiddleware",
-    "afs_vanilla.utils.auto_login.AutoLogin",
+    "afs_demo.utils.auto_login.AutoLogin",
 ]
 
 ANONYMOUS_USER = "demo-user"
@@ -179,7 +179,7 @@ AUTHENTICATION_BACKENDS = (
     "arches.app.utils.permission_backend.PermissionBackend",
     "guardian.backends.ObjectPermissionBackend",
     "arches.app.utils.external_oauth_backend.ExternalOauthAuthenticationBackend",
-    "afs_vanilla.utils.demo_auth_backend.DemoAuthBackend",
+    "afs_demo.utils.demo_auth_backend.DemoAuthBackend",
 )
 
 MIDDLEWARE.insert(  # this must resolve to first MIDDLEWARE entry
@@ -202,7 +202,7 @@ ALLOWED_HOSTS = []
 SYSTEM_SETTINGS_LOCAL_PATH = os.path.join(
     APP_ROOT, "system_settings", "System_Settings.json"
 )
-WSGI_APPLICATION = "afs_vanilla.wsgi.application"
+WSGI_APPLICATION = "afs_demo.wsgi.application"
 
 # URL that handles the media served from MEDIA_ROOT, used for managing stored files.
 # It must end in a slash if set to a non-empty value.
@@ -266,7 +266,7 @@ RATE_LIMIT = "5/m"
 DATA_UPLOAD_MAX_MEMORY_SIZE = 15728640
 
 # Unique session cookie ensures that logins are treated separately for each app
-SESSION_COOKIE_NAME = "afs_vanilla"
+SESSION_COOKIE_NAME = "afs_demo"
 
 # For more info on configuring your cache: https://docs.djangoproject.com/en/2.2/topics/cache/
 CACHES = {
@@ -436,7 +436,7 @@ SHOW_LANGUAGE_SWITCH = len(LANGUAGES) > 1
 
 # Implement this class to associate custom documents to the ES resource index
 # See tests.views.search_tests.TestEsMappingModifier class for example
-# ES_MAPPING_MODIFIER_CLASSES = ["afs_vanilla.search.es_mapping_modifier.EsMappingModifier"]
+# ES_MAPPING_MODIFIER_CLASSES = ["afs_demo.search.es_mapping_modifier.EsMappingModifier"]
 
 try:
     from .package_settings import *

@@ -1,5 +1,5 @@
 import { beforeAll, vi } from 'vitest';
-import '@/afs_vanilla/declarations.d.ts';
+import '@/afs_demo/declarations.d.ts';
 
 
 beforeAll(() => {
