@@ -25,8 +25,31 @@ WEBPACK_LOADER = {
 
 DATATYPE_LOCATIONS.append("afs_demo.datatypes")
 FUNCTION_LOCATIONS.append("afs_demo.functions")
+FUNCTION_LOCATIONS.append("arches_for_science.functions")
 ETL_MODULE_LOCATIONS.append("afs_demo.etl_modules")
 SEARCH_COMPONENT_LOCATIONS.append("afs_demo.search_components")
+
+TEMPLATES = build_templates_config(
+    debug=DEBUG,
+    app_root=APP_ROOT,
+    context_processors=[
+        "django.contrib.auth.context_processors.auth",
+        "django.template.context_processors.debug",
+        "django.template.context_processors.i18n",
+        "django.template.context_processors.media",
+        "django.template.context_processors.static",
+        "django.template.context_processors.tz",
+        "django.template.context_processors.request",
+        "django.contrib.messages.context_processors.messages",
+        "arches.app.utils.context_processors.livereload",
+        "arches.app.utils.context_processors.map_info",
+        "arches.app.utils.context_processors.app_settings",
+        "arches_for_science.utils.context_processors.project_settings",
+    ],
+)
+
+XY_TEXT_FILE_FORMATS = ["txt"]
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
 LOCALE_PATHS.insert(0, os.path.join(APP_ROOT, "locale"))
 
@@ -192,10 +215,6 @@ MIDDLEWARE.append(  # this must resolve last MIDDLEWARE entry
 
 STATICFILES_DIRS = build_staticfiles_dirs(app_root=APP_ROOT)
 
-TEMPLATES = build_templates_config(
-    debug=DEBUG,
-    app_root=APP_ROOT,
-)
 
 ALLOWED_HOSTS = []
 
@@ -378,6 +397,20 @@ RENDERERS = [
         "ext": "pdf",
         "type": "application/pdf",
         "exclude": "tif,tiff,psd",
+    },
+]
+
+RENDERERS += [
+    {
+        "name": "xy-reader",
+        "title": "XY Data File Reader",
+        "description": "Use for all instrument outputs with x-y data",
+        "id": "e93b7b27-40d8-4141-996e-e59ff08742f3",
+        "iconclass": "fa fa-bolt",
+        "component": "views/components/cards/file-renderers/xy-reader",
+        "ext": "txt",
+        "type": "text/plain",   
+        "exclude": "",
     },
 ]
 
