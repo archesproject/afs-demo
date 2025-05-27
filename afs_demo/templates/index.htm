@@ -534,16 +534,29 @@ The data-spy and data-target are part of the built-in Bootstrap scrollspy functi
     <script src="{% webpack_static 'plugins/revolution-slider.js' %}"></script>
     <script src="{% webpack_static 'plugins/cube-portfolio-lightbox.js' %}"></script>
     <script src="{% webpack_static 'node_modules/knockout/build/output/knockout-latest.js' %}"></script>
+    <script src="{% webpack_static 'node_modules/requirejs/require.js' %}"></script>
 
 
     <script>
-        jQuery(document).ready(function() {
+    jQuery(document).ready(function () {
             App.init();
             App.initCounter();
             App.initParallaxBg();
             OwlCarousel.initOwlCarousel();
             StyleSwitcher.initStyleSwitcher();
             RevolutionSlider.initRSfullScreen();
+        var popupdisplayed = localStorage.getItem('popupdisplayed');
+        if(popupdisplayed === null || !popupdisplayed) {
+            $('.popup').show(0);
+        };
+
+        $(function() {
+            $('[data-popup-close]').on('click', function(e) {
+                var targeted_popup_class = $(this).attr('data-popup-close');
+                $('[data-popup="' + targeted_popup_class + '"]').fadeOut(350);
+                localStorage.setItem('popupdisplayed', true);
+            });
+        });
 
             var contentSections = $('.app-info-block'),
                 navigationItems = $('#cd-vertical-nav a');
@@ -582,11 +595,13 @@ The data-spy and data-target are part of the built-in Bootstrap scrollspy functi
 
         });
 
-        var ViewModel = function(first, last) {
+        var ViewModel = function () {
             this.showAuthMenu = ko.observable(false);
         };
-        ko.applyBindings(new ViewModel());
 
+        setTimeout(function () {
+        ko.applyBindings(new ViewModel());
+        }, 300);
     </script>
 
 </body>
