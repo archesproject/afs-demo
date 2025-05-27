@@ -136,8 +136,8 @@ The #page-top ID is part of the scrolling feature.
 The data-spy and data-target are part of the built-in Bootstrap scrollspy function.
 -->
 
-<body id="body" data-spy="scroll" data-target=".splash-nav" class="demo-lightbox-gallery">
-
+<body id="body" data-spy="scroll" style="overflow-y: hidden;" data-target=".splash-nav" class="demo-lightbox-gallery">
+   
     <!--=== Header ===-->
     <nav class="v5-splash-navbar navbar" role="navigation">
 
@@ -255,7 +255,7 @@ The data-spy and data-target are part of the built-in Bootstrap scrollspy functi
                         <div class="image-gradient"></div>
 
                         <!-- Attribution -->
-                        <div class="image-attribution">
+                        <div class="image-attribution" style="bottom: 70px">
                             <span>{% trans "Imaging of Irises | Getty Conservation Institute | (CC BY-NC-ND 2.0)" %}</span>
                         </div>
                     </li>
@@ -500,7 +500,7 @@ The data-spy and data-target are part of the built-in Bootstrap scrollspy functi
     <!-- End Footer -->
 
     <!-- Copyright Panel -->
-    <div class="copyright-container">
+    <div class="copyright-container" style="position: absolute; bottom: 0px; width: 100%;">
         <!-- Arches link -->
         <div class="app-footer-links">
             <a class="link-spacing" href="">{% trans "Terms & Conditions" %}</a>
@@ -539,12 +539,12 @@ The data-spy and data-target are part of the built-in Bootstrap scrollspy functi
 
     <script>
     jQuery(document).ready(function () {
-            App.init();
-            App.initCounter();
-            App.initParallaxBg();
-            OwlCarousel.initOwlCarousel();
-            StyleSwitcher.initStyleSwitcher();
-            RevolutionSlider.initRSfullScreen();
+        App.init();
+        App.initCounter();
+        App.initParallaxBg();
+        OwlCarousel.initOwlCarousel();
+        StyleSwitcher.initStyleSwitcher();
+        RevolutionSlider.initRSfullScreen();
         var popupdisplayed = localStorage.getItem('popupdisplayed');
         if(popupdisplayed === null || !popupdisplayed) {
             $('.popup').show(0);
@@ -558,49 +558,49 @@ The data-spy and data-target are part of the built-in Bootstrap scrollspy functi
             });
         });
 
-            var contentSections = $('.app-info-block'),
-                navigationItems = $('#cd-vertical-nav a');
+        var contentSections = $('.app-info-block'),
+            navigationItems = $('#cd-vertical-nav a');
 
+        updateNavigation();
+        $(window).on('scroll', function(){
             updateNavigation();
-            $(window).on('scroll', function(){
-                updateNavigation();
-            });
-
-            //smooth scroll to the section
-            navigationItems.on('click', function(event){
-                event.preventDefault();
-                smoothScroll($(this.hash));
-            });
-
-
-            function updateNavigation() {
-                contentSections.each(function(){
-                    $this = $(this);
-                    var activeSection = $('#cd-vertical-nav a[href="#'+$this.attr('id')+'"]').data('number') - 1;
-                    if ( ( $this.offset().top - $(window).height()/2 < $(window).scrollTop() ) && ( $this.offset().top + $this.height() - $(window).height()/2 > $(window).scrollTop() ) ) {
-                        navigationItems.eq(activeSection).addClass('is-selected');
-                    }else {
-                        navigationItems.eq(activeSection).removeClass('is-selected');
-                    }
-                });
-            }
-
-            function smoothScroll(target) {
-                $('body,html').animate(
-                    {'scrollTop':target.offset().top},
-                    600
-                );
-            }
-
-
         });
+
+        //smooth scroll to the section
+        navigationItems.on('click', function(event){
+            event.preventDefault();
+            smoothScroll($(this.hash));
+        });
+
+
+        function updateNavigation() {
+            contentSections.each(function(){
+                $this = $(this);
+                var activeSection = $('#cd-vertical-nav a[href="#'+$this.attr('id')+'"]').data('number') - 1;
+                if ( ( $this.offset().top - $(window).height()/2 < $(window).scrollTop() ) && ( $this.offset().top + $this.height() - $(window).height()/2 > $(window).scrollTop() ) ) {
+                    navigationItems.eq(activeSection).addClass('is-selected');
+                }else {
+                    navigationItems.eq(activeSection).removeClass('is-selected');
+                }
+            });
+        }
+
+        function smoothScroll(target) {
+            $('body,html').animate(
+                {'scrollTop':target.offset().top},
+                600
+            );
+        }
+
+
+    });
 
         var ViewModel = function () {
             this.showAuthMenu = ko.observable(false);
         };
 
         setTimeout(function () {
-        ko.applyBindings(new ViewModel());
+            ko.applyBindings(new ViewModel());
         }, 300);
     </script>
 
