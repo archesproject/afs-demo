@@ -97,7 +97,7 @@ define([
                 templateId: template.id,
                 filename: reportUtils.slugify(`${self.projectName()}_${template.name}_${reportDate}`)
             }));
-            console.log('jamba juice');
+
             data = {
                 projectId,
                 templates,
