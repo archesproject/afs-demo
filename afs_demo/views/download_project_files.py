@@ -14,22 +14,39 @@ import arches.app.utils.zip as zip_utils
 import arches.app.utils.task_management as task_management
 import arches_for_science.tasks as tasks
 from arches_templating.views.template import TemplateView
+import re
 
 logger = logging.getLogger(__name__)
 
 
 class FileDownloader(View):
+
+    def clean_data(self, text):
+        text = text.replace("&quot;", "'").replace("&nbsp", "").replace("\\\\n", "")
+        clean = re.compile("<.*?>")
+        return re.sub(clean, "", text)
+
     def post(self, request):
         json_data = json.loads(request.body)
 
         # get reports and save them
         templates = json_data.pop("templates")
         generated_reports = []
+
         for template in templates:
             request.POST = request.POST.copy()
             json_data["templateId"] = template["templateId"]
             json_data["filename"] = template["filename"]
-            request._body = json.dumps(json_data)  # TODO: there should be a better way
+            payload = json.dumps(json_data)
+
+            try:
+                payload = self.clean_data(payload)
+                json.loads(payload) # verify json is valid
+            except:
+                logger.warning("Cleaned report data failed to parse.")
+                payload = json.dumps(json_data)
+
+            request._body = payload
             report_template = TemplateView()
             response = report_template.post(request, template["templateId"])
 
