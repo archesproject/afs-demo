@@ -41,7 +41,7 @@ class FileDownloader(View):
 
             try:
                 payload = self.clean_data(payload)
-                json.loads(payload) # verify json is valid
+                json.loads(payload)  # verify json is valid
             except:
                 logger.warning("Cleaned report data failed to parse.")
                 payload = json.dumps(json_data)
@@ -50,7 +50,9 @@ class FileDownloader(View):
             report_template = TemplateView()
             response = report_template.post(request, template["templateId"])
 
-            name = response.headers["Content-Disposition"].split("=")[1]  # TODO: need more robust way to do this
+            name = response.headers["Content-Disposition"].split("=")[
+                1
+            ]  # TODO: need more robust way to do this
             content = response.content
             f = BytesIO(content)
             file = File(f)
@@ -63,7 +65,10 @@ class FileDownloader(View):
 
         # get attached files and zip them
         files = json_data["files"]
-        screenshots = [{"fileid": i["fileId"], "name": i["imageName"]} for i in json_data["annotationScreenshots"]]
+        screenshots = [
+            {"fileid": i["fileId"], "name": i["imageName"]}
+            for i in json_data["annotationScreenshots"]
+        ]
         temp_files = generated_reports + screenshots
 
         project_name = json_data["projectDetails"][0]["displayname"]
@@ -86,7 +91,9 @@ class FileDownloader(View):
         else:
             response = {
                 "title": _("Error"),
-                "message": _("Celery must be running to download files. Check with your Arches administrator for help."),
+                "message": _(
+                    "Celery must be running to download files. Check with your Arches administrator for help."
+                ),
             }
             return JSONErrorResponse(content=response)
 
@@ -110,9 +117,13 @@ class FileDownloader(View):
         for file in all_files:
             try:
                 if file["file"].size >= size_limit:
-                    skipped_files.append({"name": file["name"], "fileid": file["fileid"]})
+                    skipped_files.append(
+                        {"name": file["name"], "fileid": file["fileid"]}
+                    )
                 else:
-                    download_files.append({"name": file["name"], "downloadfile": file["file"]})
+                    download_files.append(
+                        {"name": file["name"], "downloadfile": file["file"]}
+                    )
             except:
                 logger.warning(_("Unable to locate {}".format(file["name"])))
 
@@ -120,7 +131,9 @@ class FileDownloader(View):
             zip_stream = zip_utils.create_zip_file(download_files, "downloadfile")
             now = datetime.datetime.now().isoformat()
             name = f"{project_name}_{now}.zip"
-            search_history_obj = models.SearchExportHistory(user=user, numberofinstances=len(files))
+            search_history_obj = models.SearchExportHistory(
+                user=user, numberofinstances=len(files)
+            )
             f = BytesIO(zip_stream)
             download = File(f)
             search_history_obj.downloadfile.save(name, download)

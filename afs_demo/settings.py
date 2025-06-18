@@ -411,7 +411,7 @@ RENDERERS += [
         "iconclass": "fa fa-bolt",
         "component": "views/components/cards/file-renderers/xy-reader",
         "ext": "txt",
-        "type": "text/plain",   
+        "type": "text/plain",
         "exclude": "",
     },
 ]

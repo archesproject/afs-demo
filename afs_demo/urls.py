@@ -5,7 +5,11 @@ from django.urls import include, path, re_path
 from afs_demo.views.download_project_files import FileDownloader
 
 urlpatterns = [
-    re_path(r"^download_project_files", FileDownloader.as_view(), name="download_project_files"),
+    re_path(
+        r"^download_project_files",
+        FileDownloader.as_view(),
+        name="download_project_files",
+    ),
     re_path(r"^", include("arches.urls")),
     re_path(r"^", include("arches_for_science.urls")),
     path("reports/", include("arches_templating.urls")),
