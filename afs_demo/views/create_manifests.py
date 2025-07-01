@@ -15,7 +15,16 @@ logger = logging.getLogger(__name__)
 
 cantaloupe_uri = f"{settings.CANTALOUPE_HTTP_ENDPOINT.rstrip('/')}/iiif"
 
-def create_manifest(name="", desc="", file_url="file_url", attribution="", logo="", canvases=[], metadata=[]):
+
+def create_manifest(
+    name="",
+    desc="",
+    file_url="file_url",
+    attribution="",
+    logo="",
+    canvases=[],
+    metadata=[],
+):
     sequence_id = f"{cantaloupe_uri}/manifest/sequence/TBD.json"
 
     return {
@@ -43,13 +52,12 @@ def create_manifest(name="", desc="", file_url="file_url", attribution="", logo=
         ],
     }
 
+
 def create_canvas(image_json, file_url, file_name, image_id):
     canvas_id = f"{cantaloupe_uri}/manifest/canvas/{image_id}.json"
     image_id = f"{cantaloupe_uri}/manifest/annotation/{image_id}.json"
     thumbnail_width = 300 if image_json["width"] >= 300 else image_json["width"]
-    thumbnail_height = (
-        300 if image_json["height"] >= 300 else image_json["height"]
-    )
+    thumbnail_height = 300 if image_json["height"] >= 300 else image_json["height"]
     thumbnail_id = (
         f"{file_url}/full/!{thumbnail_width},{thumbnail_height}/0/default.jpg"
     )
@@ -93,6 +101,7 @@ def create_canvas(image_json, file_url, file_name, image_id):
         },
     }
 
+
 def fetch(url):
     try:
         resp = requests.get(url)
@@ -101,21 +110,23 @@ def fetch(url):
         logger.warning("Manifest not created. Check if Cantaloupe running")
         raise
 
+
 def create_image(file, scheme, host):
     new_image_id = uuid.uuid4()
     new_image_file = File.objects.create(fileid=new_image_id, path=file)
     new_image_file.save()
 
     file_name = os.path.basename(new_image_file.path.name)
-    file_url = (
-        f"{scheme}://{host}/iiifserver/iiif/2/{file_name}"
-    )
+    file_url = f"{scheme}://{host}/iiifserver/iiif/2/{file_name}"
     file_json_url = f"{cantaloupe_uri}/2/{file_name}/info.json"
     image_json = fetch(file_json_url)
 
     return image_json, new_image_id, file_url
 
-def create_manifest_service(files, name, desc, attribution, logo, transaction_id, scheme, host, metadata):
+
+def create_manifest_service(
+    files, name, desc, attribution, logo, transaction_id, scheme, host, metadata
+):
     acceptable_types = [
         ".jpg",
         ".jpeg",
@@ -143,7 +154,7 @@ def create_manifest_service(files, name, desc, attribution, logo, transaction_id
         desc=desc,
         attribution=attribution,
         logo=logo,
-        metadata=metadata
+        metadata=metadata,
     )
     manifest_global_id = str(uuid.uuid4())
     json_url = f"/manifest/{manifest_global_id}"
@@ -159,6 +170,7 @@ def create_manifest_service(files, name, desc, attribution, logo, transaction_id
     )
 
     return manifest
+
 
 class CreateManifest(View):
     def post(request: HttpRequest):
@@ -181,6 +193,8 @@ class CreateManifest(View):
         except TypeError:
             metadata = []
 
-        manifest = create_manifest_service(files, name, desc, attribution, logo, transaction_id, scheme, host, metadata)
+        manifest = create_manifest_service(
+            files, name, desc, attribution, logo, transaction_id, scheme, host, metadata
+        )
 
         return JSONResponse(manifest)
