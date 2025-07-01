@@ -3,6 +3,7 @@ import json
 import os
 import requests
 import uuid
+from django.db import connection
 from django.http import HttpRequest
 from django.utils.translation import gettext as _
 from django.views.generic import View
@@ -124,6 +125,40 @@ def create_image(file, scheme, host):
     return image_json, new_image_id, file_url
 
 
+def create_manifest_record(name, desc, transaction_id, pres_dict, json_url, manifest_global_id, sql):
+    if sql:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO iiif_manifests (
+                    label,
+                    description,
+                    manifest,
+                    url,
+                    globalid,
+                    transactionid
+                ) VALUES (%s, %s, %s, %s, %s, %s)
+                """, (
+                    name,
+                    desc,
+                    pres_dict,
+                    json_url,
+                    manifest_global_id,
+                    transaction_id,
+                ),
+            )
+    else:
+        manifest = IIIFManifest.objects.create(
+            label=name,
+            description=desc,
+            manifest=pres_dict,
+            url=json_url,
+            globalid=manifest_global_id,
+            transactionid=transaction_id,
+        )
+
+    return manifest
+
+
 def create_manifest_service(
     files, name, desc, attribution, logo, transaction_id, scheme, host, metadata
 ):
@@ -160,14 +195,7 @@ def create_manifest_service(
     json_url = f"/manifest/{manifest_global_id}"
     pres_dict["@id"] = f"{scheme}://{host}{json_url}"
 
-    manifest = IIIFManifest.objects.create(
-        label=name,
-        description=desc,
-        manifest=pres_dict,
-        url=json_url,
-        globalid=manifest_global_id,
-        transactionid=transaction_id,
-    )
+    manifest = create_manifest_record(name, desc, transaction_id, pres_dict, json_url, manifest_global_id, True)
 
     return manifest
 
