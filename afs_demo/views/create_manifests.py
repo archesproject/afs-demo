@@ -1,122 +1,167 @@
-import datetime
 import logging
 import json
 import os
+import requests
 import uuid
 from django.http import HttpRequest
 from django.utils.translation import gettext as _
 from django.views.generic import View
-from arches.app.models.models import File, IIIFManifest, VwAnnotation, ManifestValidationError
+from arches.app.models.models import File, IIIFManifest
+from arches.app.models.system_settings import settings
 from arches.app.utils.response import JSONResponse
 
 logger = logging.getLogger(__name__)
 
 
-class CreateManifest(View):
-    def create_manifest(
-        self, name="", desc="", file_url="file_url", attribution="", logo="", canvases=[]
-    ):
-        metadata = []  # {"label": "TBD", "value": ["Unknown", ...]}
-        sequence_id = f"{self.cantaloupe_uri}/manifest/sequence/TBD.json"
+cantaloupe_uri = f"{settings.CANTALOUPE_HTTP_ENDPOINT.rstrip('/')}/iiif"
 
-        return {
-            "@context": "http://iiif.io/api/presentation/2/context.json",
-            "@type": "sc:Manifest",
-            "description": desc,
-            "label": name,
-            "attribution": attribution,
-            "logo": logo,
-            "metadata": metadata,
-            "thumbnail": {
-                "@id": file_url + "/full/!300,300/0/default.jpg",
-                "@type": "dctypes:Image",
-                "format": "image/jpeg",
-                "label": "Main View (.45v)",
-            },
-            "sequences": [
-                {
-                    "@id": sequence_id,
-                    "@type": "sc:Sequence",
-                    "canvases": canvases,
-                    "label": "Object",
-                    "startCanvas": "",
-                }
-            ],
-        }
+def create_manifest(name="", desc="", file_url="file_url", attribution="", logo="", canvases=[], metadata=[]):
+    sequence_id = f"{cantaloupe_uri}/manifest/sequence/TBD.json"
 
-    def create_canvas(self, image_json, file_url, file_name, image_id):
-        canvas_id = f"{self.cantaloupe_uri}/manifest/canvas/{image_id}.json"
-        image_id = f"{self.cantaloupe_uri}/manifest/annotation/{image_id}.json"
-        thumbnail_width = 300 if image_json["width"] >= 300 else image_json["width"]
-        thumbnail_height = (
-            300 if image_json["height"] >= 300 else image_json["height"]
-        )
-        thumbnail_id = (
-            f"{file_url}/full/!{thumbnail_width},{thumbnail_height}/0/default.jpg"
-        )
+    return {
+        "@context": "http://iiif.io/api/presentation/2/context.json",
+        "@type": "sc:Manifest",
+        "description": desc,
+        "label": name,
+        "attribution": attribution,
+        "logo": logo,
+        "metadata": metadata,
+        "thumbnail": {
+            "@id": file_url + "/full/!300,300/0/default.jpg",
+            "@type": "dctypes:Image",
+            "format": "image/jpeg",
+            "label": "Main View (.45v)",
+        },
+        "sequences": [
+            {
+                "@id": sequence_id,
+                "@type": "sc:Sequence",
+                "canvases": canvases,
+                "label": "Object",
+                "startCanvas": "",
+            }
+        ],
+    }
 
-        return {
-            "@id": canvas_id,
-            "@type": "sc:Canvas",
-            "height": image_json["height"],
-            "width": image_json["width"],
-            "images": [
-                {
-                    "@id": image_id,
-                    "@type": "oa.Annotation",
-                    "motivation": "unknown",
-                    "on": canvas_id,
-                    "resource": {
-                        "@id": file_url + "/full/full/0/default.jpg",
-                        "@type": "dctypes:Image",
-                        "format": "image/jpeg",
-                        "height": image_json["height"],
-                        "width": image_json["width"],
-                        "service": {
-                            "@context": "http://iiif.io/api/image/2/context.json",
-                            "@id": file_url,
-                            "profile": "http://iiif.io/api/image/2/level2.json",
-                        },
+def create_canvas(image_json, file_url, file_name, image_id):
+    canvas_id = f"{cantaloupe_uri}/manifest/canvas/{image_id}.json"
+    image_id = f"{cantaloupe_uri}/manifest/annotation/{image_id}.json"
+    thumbnail_width = 300 if image_json["width"] >= 300 else image_json["width"]
+    thumbnail_height = (
+        300 if image_json["height"] >= 300 else image_json["height"]
+    )
+    thumbnail_id = (
+        f"{file_url}/full/!{thumbnail_width},{thumbnail_height}/0/default.jpg"
+    )
+
+    return {
+        "@id": canvas_id,
+        "@type": "sc:Canvas",
+        "height": image_json["height"],
+        "width": image_json["width"],
+        "images": [
+            {
+                "@id": image_id,
+                "@type": "oa.Annotation",
+                "motivation": "unknown",
+                "on": canvas_id,
+                "resource": {
+                    "@id": file_url + "/full/full/0/default.jpg",
+                    "@type": "dctypes:Image",
+                    "format": "image/jpeg",
+                    "height": image_json["height"],
+                    "width": image_json["width"],
+                    "service": {
+                        "@context": "http://iiif.io/api/image/2/context.json",
+                        "@id": file_url,
+                        "profile": "http://iiif.io/api/image/2/level2.json",
                     },
-                }
-            ],
-            "label": f"{file_name}",
-            "license": "TBD",
-            "thumbnail": {
-                "@id": thumbnail_id,
-                "@type": "dctypes:Image",
-                "format": "image/jpeg",
-                "service": {
-                    "@context": "http://iiif.io/api/image/2/context.json",
-                    "@id": file_url,
-                    "profile": "http://iiif.io/api/image/2/level2.json",
                 },
+            }
+        ],
+        "label": f"{file_name}",
+        "license": "TBD",
+        "thumbnail": {
+            "@id": thumbnail_id,
+            "@type": "dctypes:Image",
+            "format": "image/jpeg",
+            "service": {
+                "@context": "http://iiif.io/api/image/2/context.json",
+                "@id": file_url,
+                "profile": "http://iiif.io/api/image/2/level2.json",
             },
-        }
+        },
+    }
 
-    def create_image(self, file, scheme, host):
-        new_image_id = uuid.uuid4()
-        new_image_file = File.objects.create(fileid=new_image_id, path=file)
-        new_image_file.save()
+def fetch(url):
+    try:
+        resp = requests.get(url)
+        return resp.json()
+    except:
+        logger.warning("Manifest not created. Check if Cantaloupe running")
+        raise
 
-        file_name = os.path.basename(new_image_file.path.name)
-        file_url = (
-            f"{scheme}://{host}/iiifserver/iiif/2/{file_name}"
-        )
-        file_json_url = f"{self.cantaloupe_uri}/2/{file_name}/info.json"
-        image_json = self.fetch(file_json_url)
+def create_image(file, scheme, host):
+    new_image_id = uuid.uuid4()
+    new_image_file = File.objects.create(fileid=new_image_id, path=file)
+    new_image_file.save()
 
-        return image_json, new_image_id, file_url
+    file_name = os.path.basename(new_image_file.path.name)
+    file_url = (
+        f"{scheme}://{host}/iiifserver/iiif/2/{file_name}"
+    )
+    file_json_url = f"{cantaloupe_uri}/2/{file_name}/info.json"
+    image_json = fetch(file_json_url)
 
-    def post(self, request: HttpRequest):
-        acceptable_types = [
-            ".jpg",
-            ".jpeg",
-            ".tiff",
-            ".tif",
-            ".png",
-        ]
+    return image_json, new_image_id, file_url
 
+def create_manifest_service(files, name, desc, attribution, logo, transaction_id, scheme, host, metadata):
+    acceptable_types = [
+        ".jpg",
+        ".jpeg",
+        ".tiff",
+        ".tif",
+        ".png",
+    ]
+
+    canvases = []
+    for f in files:
+        if os.path.splitext(f.name)[1].lower() in acceptable_types:
+            image_json, image_id, file_url = create_image(f, scheme, host)
+
+            canvas = create_canvas(
+                image_json, file_url, os.path.splitext(f.name)[0], image_id
+            )
+            canvases.append(canvas)
+        else:
+            logger.warning("filetype unacceptable: " + f.name)
+
+    pres_dict = create_manifest(
+        name=name,
+        canvases=canvases,
+        file_url=canvases[0]["thumbnail"]["service"]["@id"],
+        desc=desc,
+        attribution=attribution,
+        logo=logo,
+        metadata=metadata
+    )
+    manifest_global_id = str(uuid.uuid4())
+    json_url = f"/manifest/{manifest_global_id}"
+    pres_dict["@id"] = f"{scheme}://{host}{json_url}"
+
+    manifest = IIIFManifest.objects.create(
+        label=name,
+        description=desc,
+        manifest=pres_dict,
+        url=json_url,
+        globalid=manifest_global_id,
+        transactionid=transaction_id,
+    )
+
+    return manifest
+
+class CreateManifest(View):
+    def post(request: HttpRequest):
         files = request.FILES.getlist("files")
         name = request.POST.get("manifest_title")
         if name == "null" or name == "undefined":
@@ -128,12 +173,7 @@ class CreateManifest(View):
         attribution = request.POST.get("manifest_attribution", "")
         logo = request.POST.get("manifest_logo", "")
         desc = request.POST.get("manifest_description", "")
-        operation = request.POST.get("operation")
-        manifest_url = request.POST.get("manifest")
-        canvas_label = request.POST.get("canvas_label")
-        canvas_id = request.POST.get("canvas_id")
         transaction_id = request.POST.get("transaction_id", uuid.uuid1())
-        selected_canvases = request.POST.get("selected_canvases")
         scheme = request.scheme
         host = request.get_host()
         try:
@@ -141,34 +181,6 @@ class CreateManifest(View):
         except TypeError:
             metadata = []
 
-        canvases = []
-        for f in files:
-            if os.path.splitext(f.name)[1].lower() in acceptable_types:
-                image_json, image_id, file_url = self.create_image(f, scheme, host)
-
-                canvas = self.create_canvas(
-                    image_json, file_url, os.path.splitext(f.name)[0], image_id
-                )
-                canvases.append(canvas)
-            else:
-                logger.warning("filetype unacceptable: " + f.name)
-
-        pres_dict = self.create_manifest(
-            name=name,
-            canvases=canvases,
-            file_url=canvases[0]["thumbnail"]["service"]["@id"],
-        )
-        manifest_global_id = str(uuid.uuid4())
-        json_url = f"/manifest/{manifest_global_id}"
-        pres_dict["@id"] = f"{request.scheme}://{request.get_host()}{json_url}"
-
-        manifest = IIIFManifest.objects.create(
-            label=name,
-            description=desc,
-            manifest=pres_dict,
-            url=json_url,
-            globalid=manifest_global_id,
-            transactionid=transaction_id,
-        )
+        manifest = create_manifest_service(files, name, desc, attribution, logo, transaction_id, scheme, host, metadata)
 
         return JSONResponse(manifest)
