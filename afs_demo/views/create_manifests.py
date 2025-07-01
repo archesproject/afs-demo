@@ -14,7 +14,7 @@ from arches.app.utils.response import JSONResponse
 logger = logging.getLogger(__name__)
 
 
-ARCHES_URL = settings.PUBLIC_SERVER_ADDRESS.rstrip('/')
+ARCHES_URL = settings.PUBLIC_SERVER_ADDRESS.rstrip("/")
 CANTALOUPE_URI = f"{settings.CANTALOUPE_HTTP_ENDPOINT.rstrip('/')}/iiif"
 ACCEPTABLE_TYPES = [
     ".jpg",
@@ -133,10 +133,13 @@ def create_image(file):
     return image_json, new_image_id, file_url
 
 
-def create_manifest_record(name, desc, transaction_id, pres_dict, json_url, manifest_global_id, sql):
+def create_manifest_record(
+    name, desc, transaction_id, pres_dict, json_url, manifest_global_id, sql
+):
     if sql:
         with connection.cursor() as cursor:
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO iiif_manifests (
                     label,
                     description,
@@ -145,7 +148,8 @@ def create_manifest_record(name, desc, transaction_id, pres_dict, json_url, mani
                     globalid,
                     transactionid
                 ) VALUES (%s, %s, %s, %s, %s, %s)
-                """, (
+                """,
+                (
                     name,
                     desc,
                     pres_dict,
@@ -169,7 +173,7 @@ def create_manifest_record(name, desc, transaction_id, pres_dict, json_url, mani
 
 # this function is the main entry point for creating a manifest service
 def create_manifest_service(
-    files, 
+    files,
     name="",
     desc="",
     attribution="",
@@ -208,7 +212,9 @@ def create_manifest_service(
         json_url = f"/manifest/{manifest_global_id}"
         pres_dict["@id"] = f"{ARCHES_URL}{json_url}"
 
-        manifest = create_manifest_record(name, desc, transaction_id, pres_dict, json_url, manifest_global_id, False)
+        manifest = create_manifest_record(
+            name, desc, transaction_id, pres_dict, json_url, manifest_global_id, False
+        )
 
     return manifest
 
@@ -229,13 +235,12 @@ def create_manifests_from_tiles():
         nodegroup_id=DIGITAL_RESOURCES_NODEGROUPID,
     ).iterator()
     for tile in digital_resource_file_tiles:
-        for file in tile.data['7c486328-d380-11e9-b88e-a4d18cec433a']:
+        for file in tile.data[DIGITAL_RESOURCES_NODEGROUPID]:
             if file["file_id"] is not None and file["file_id"] != "":
                 if os.path.splitext(file["name"])[1].lower() in ACCEPTABLE_TYPES:
                     create_manifest_service([file])
                 else:
                     logger.warning("filetype unacceptable: " + file["name"])
-
 
 
 class CreateManifest(View):
