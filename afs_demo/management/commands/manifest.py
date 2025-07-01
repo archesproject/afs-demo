@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 from django.core.management.base import BaseCommand
 from afs_demo.views.create_manifests import create_manifests_from_tiles
 
+
 class Command(BaseCommand):
     """
     Commands for import digital resources' files as manifests.
