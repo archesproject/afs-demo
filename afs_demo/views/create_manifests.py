@@ -7,9 +7,13 @@ from django.db import connection
 from django.http import HttpRequest
 from django.utils.translation import gettext as _
 from django.views.generic import View
-from arches.app.models.models import File, IIIFManifest, TileModel
+from arches.app.models.models import File, IIIFManifest, ResourceXResource, TileModel
+from arches.app.models.tile import Tile
 from arches.app.models.system_settings import settings
+from arches.app.utils.betterJSONSerializer import JSONSerializer
 from arches.app.utils.response import JSONResponse
+
+from arches_for_science.models import ManifestXDigitalResource
 
 logger = logging.getLogger(__name__)
 
@@ -213,8 +217,13 @@ def create_manifest_service(
         manifest = create_manifest_record(
             name, desc, transaction_id, pres_dict, json_url, manifest_global_id, False
         )
+        digital_resource = ManifestXDigitalResource.objects.filter(
+            manifest__contains=str(manifest_global_id)
+        )
+        if digital_resource:
+            digital_resource_id = digital_resource[0].digitalresource
 
-    return manifest
+    return manifest, digital_resource_id
 
 
 def get_image_info(file):
@@ -228,18 +237,54 @@ def get_image_info(file):
 
 
 def create_manifests_from_tiles():
-    DIGITAL_RESOURCES_NODEGROUPID = "7c486328-d380-11e9-b88e-a4d18cec433a"
+    DIGITAL_RESOURCE_FILE_NODEGROUPID = "7c486328-d380-11e9-b88e-a4d18cec433a"
+    DIGITAL_REFERENCE_NODEGROUPID = "8a4ad932-8d59-11eb-a9c4-faffc265b501"  # phys thing
+    DIGITAL_SOURCE_NODEID = "a298ee52-8d59-11eb-a9c4-faffc265b501"
+    DIGITAL_REFERENCE_TYPE_NODEID = "f11e4d60-8d59-11eb-a9c4-faffc265b501"
+    ONTOLOGY_PROPERTY = "be3f33e9-216d-4355-8766-aced1e95616c"
+    INVERSE_ONTOLOGY_PROPERTY = "ff6a0510-6c91-4c45-8c67-dbbcf8d7d7fa"
+    PREFERRED_MANIFEST_VALUEID = "1497d15a-1c3b-4ee9-a259-846bbab012ed"
+
     digital_resource_file_tiles = TileModel.objects.filter(
-        nodegroup_id=DIGITAL_RESOURCES_NODEGROUPID,
+        nodegroup_id=DIGITAL_RESOURCE_FILE_NODEGROUPID,
     ).iterator()
     transaction_id = uuid.uuid1()
     for tile in digital_resource_file_tiles:
-        for file in tile.data[DIGITAL_RESOURCES_NODEGROUPID]:
+        for file in tile.data[DIGITAL_RESOURCE_FILE_NODEGROUPID]:
             if file["file_id"] is not None and file["file_id"] != "":
                 if os.path.splitext(file["name"])[1].lower() in ACCEPTABLE_TYPES:
-                    create_manifest_service([file], transaction_id=transaction_id)
+                    manifest, manifest_digital_resource_id = create_manifest_service(
+                        [file], transaction_id=transaction_id
+                    )
                 else:
                     logger.warning("filetype unacceptable: " + file["name"])
+
+        if manifest_digital_resource_id:
+            file_digital_resource_id = tile.resourceinstance_id
+            physical_thing = ResourceXResource.objects.filter(
+                nodeid=DIGITAL_SOURCE_NODEID,
+                resourceinstanceidto=file_digital_resource_id,
+            )
+            if physical_thing:
+                physical_thing_resource_id = str(
+                    physical_thing[0].resourceinstanceidfrom.resourceinstanceid
+                )
+                new_tile = Tile.get_blank_tile_from_nodegroup_id(
+                    nodegroup_id=DIGITAL_REFERENCE_NODEGROUPID
+                )
+                new_tile.resourceinstance_id = physical_thing_resource_id
+                new_tile.data[DIGITAL_SOURCE_NODEID] = [
+                    {
+                        "resourceId": manifest_digital_resource_id,
+                        "ontologyProperty": ONTOLOGY_PROPERTY,
+                        "inverseOntologyProperty": INVERSE_ONTOLOGY_PROPERTY,
+                    }
+                ]
+                new_tile.data[DIGITAL_REFERENCE_TYPE_NODEID] = (
+                    PREFERRED_MANIFEST_VALUEID
+                )
+
+                new_tile.save()
 
 
 class CreateManifest(View):
