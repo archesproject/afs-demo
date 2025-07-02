@@ -181,8 +181,6 @@ def create_manifest_service(
     transaction_id=None,
     metadata=[],
 ):
-    if not transaction_id:
-        transaction_id = uuid.uuid1()
     if not name:
         try:
             name = os.path.splitext(files[0]["name"])[0]
@@ -234,11 +232,12 @@ def create_manifests_from_tiles():
     digital_resource_file_tiles = TileModel.objects.filter(
         nodegroup_id=DIGITAL_RESOURCES_NODEGROUPID,
     ).iterator()
+    transaction_id = uuid.uuid1()
     for tile in digital_resource_file_tiles:
         for file in tile.data[DIGITAL_RESOURCES_NODEGROUPID]:
             if file["file_id"] is not None and file["file_id"] != "":
                 if os.path.splitext(file["name"])[1].lower() in ACCEPTABLE_TYPES:
-                    create_manifest_service([file])
+                    create_manifest_service([file], transaction_id=transaction_id)
                 else:
                     logger.warning("filetype unacceptable: " + file["name"])
 
