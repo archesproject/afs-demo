@@ -250,6 +250,7 @@ def create_manifests_from_tiles():
     ).iterator()
     transaction_id = uuid.uuid1()
     for tile in digital_resource_file_tiles:
+        manifest_digital_resource_id = None
         for file in tile.data[DIGITAL_RESOURCE_FILE_NODEGROUPID]:
             if file["file_id"] is not None and file["file_id"] != "":
                 if os.path.splitext(file["name"])[1].lower() in ACCEPTABLE_TYPES:
