@@ -144,8 +144,6 @@ DATABASES = {
     }
 }
 
-SEARCH_THUMBNAILS = False
-
 INSTALLED_APPS = (
     "webpack_loader",
     "django.contrib.admin",
